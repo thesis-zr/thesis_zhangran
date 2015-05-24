@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -162,9 +164,14 @@ public class ZrDocument {
 		for (int i = 0; i < keys.length; i++) {
 			ZrNode zn = nodeMap.get((String)keys[i]);
 
-			if (zn.domNode.getAttribute("id").equals("1270011432466020442")) {
-				int x = 1;
-				x++;
+			// only INTENT can be root node
+			if (zn.nodeType != ZrNode.TYPE_INTENT) {
+				continue;
+			}
+
+			// there's an special node with label "Home Window", which should be excluded
+			if (zn.domNode.getAttribute("label").equals("Home Window")) {
+				continue;
 			}
 			
 			// root node should have no link points to it
@@ -184,15 +191,7 @@ public class ZrDocument {
 			if (found) {
 				continue;
 			}
-			// only INTENT can be root node
-			if (zn.nodeType != ZrNode.TYPE_INTENT) {
-				continue;
-			}
-			// there's an special node with label "Home Window", which should be excluded
-			if (zn.domNode.getAttribute("label").equals("Home Window")) {
-				continue;
-			}
-			
+
 			rootNode = zn;
 			break;
 		}
@@ -209,7 +208,7 @@ public class ZrDocument {
 		for (int i = 0; i < keys.length; i++) {
 			ZrNode zn = nodeMap.get((String)keys[i]);
 			for (int j = 0; j < zn.linkList.size(); j++) {
-				ZrLink zl = zn.linkList.get(i);
+				ZrLink zl = zn.linkList.get(j);
 				if (zl.to == node) {
 					zl.domNode.getParentNode().removeChild(zl.domNode);
 					zn.linkList.remove(j);
@@ -218,13 +217,20 @@ public class ZrDocument {
 			}
 		}
 
-		// remove links _from_ this node and recurse into the subtree
+		// remove links _from_ this node
+		List<ZrNode> toList = new ArrayList<ZrNode>();
 		for (int i = 0; i < node.linkList.size(); i++) {
 			ZrLink zl = node.linkList.get(i);
 			if (zl.linkType != ZrLink.TYPE_RETURN_TO && zl.linkType != ZrLink.TYPE_EVOLVE_TO) {
-				removeNodeWithSubTree(zl.to);
+				toList.add(zl.to);
 			}
 			zl.domNode.getParentNode().removeChild(zl.domNode);
+		}
+		node.linkList.clear();
+
+		// recurse into the subtree
+		for (int i = 0; i < toList.size(); i++) {
+			removeNodeWithSubTree(toList.get(i));
 		}
 		
 		// remove this node
@@ -240,17 +246,22 @@ public class ZrDocument {
 	}
 
 	public void removeSubtreeOfNode(ZrNode node) {
+		List<ZrNode> toList = new ArrayList<ZrNode>();
 		for (int i = 0; i < node.linkList.size(); i++) {
 			ZrLink zl = node.linkList.get(i);
 			if (zl.linkType == ZrLink.TYPE_REFER_TO) {
 				continue;
 			}
-			
-			removeNodeWithSubTree(zl.to);
 
+			toList.add(zl.to);
 			zl.domNode.getParentNode().removeChild(zl.domNode);
 			node.linkList.remove(i);
 			i--;
+		}
+
+		// recurse into the subtree
+		for (int i = 0; i < toList.size(); i++) {
+			removeNodeWithSubTree(toList.get(i));
 		}
 	}
 	
@@ -262,9 +273,9 @@ public class ZrDocument {
 		for (int i = 0; i < keys.length; i++) {
 			ZrNode zn = nodeMap.get((String)keys[i]);
 			for (int j = 0; j < zn.linkList.size(); j++) {
-				ZrLink zl = zn.linkList.get(i);
+				ZrLink zl = zn.linkList.get(j);
 				if (zl.to == oldNode) {
-					zl.domNode.setAttribute("from", newNode.domNode.getAttribute("to"));
+					zl.domNode.setAttribute("from", newNode.domNode.getAttribute("id"));
 					zl.to = newNode;
 				}
 			}

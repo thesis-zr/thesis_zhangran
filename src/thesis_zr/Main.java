@@ -111,9 +111,10 @@ public class Main {
 					return;
 				}
 				
+				ZrProcessor procObj = new ZrProcessor(docObj);
+				procObj.process();
+
 				try {
-					ZrProcessor procObj = new ZrProcessor(docObj);
-					procObj.process();
 				} catch (Exception ex) {
 					showError("Failed to process data file, " + ex.getMessage());
 					return;
