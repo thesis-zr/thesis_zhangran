@@ -1,22 +1,33 @@
 package thesis_zr;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 public class Main {
 
+	public static Display display = new Display();
+
+	public static Shell shell = new Shell(display, SWT.DIALOG_TRIM);
+	
+	public static ZrDocument docObj = new ZrDocument();
+	
 	public static void main(String[] args) {
-		Display display = new Display();
-		Shell shell = new Shell(display, SWT.DIALOG_TRIM);
 		GridLayout layout = new GridLayout();
 		GridData gd = null;
 
+		shell.setText("Converter");
 		shell.setLayout(layout);
 		layout.numColumns = 4;
 		layout.makeColumnsEqualWidth = true;
@@ -38,12 +49,42 @@ public class Main {
 		btnBrowse.setText("Browse...");
 		gd = new GridData(SWT.BEGINNING, SWT.CENTER, true, false);
 		btnBrowse.setLayoutData(gd);
+		btnBrowse.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) { 
+				FileDialog dialog = new FileDialog(shell, SWT.OPEN);
+				String file = dialog.open(); 
+				if (file != null) { 
+					text.setText(file); 
+				} 
+			} 
+		});
 		
 		Button btnLoad = new Button(shell, SWT.PUSH);
 		btnLoad.setText("Load");
 		gd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
 		gd.widthHint = 100;
 		btnLoad.setLayoutData(gd);
+		btnLoad.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (text.getText().equals("")) {
+					showError("No data file selected.");
+					return;
+				}
+				
+				File f = new File(text.getText());
+				if (!f.exists()) {
+					showError("Data file does not exist.");
+					return;
+				}
+				if (f.isDirectory()) {
+					showError("Data file is not a text file.");
+					return;
+				}
+
+				docObj.load(f.getAbsolutePath());
+				showNotice("Successfully loaded from file " + f.getAbsolutePath() + ".");
+			}
+		});
 
 		Button btnProcess = new Button(shell, SWT.PUSH);
 		btnProcess.setText("Process");
@@ -56,6 +97,27 @@ public class Main {
 		gd = new GridData(SWT.CENTER, SWT.BEGINNING, true, false);
 		gd.widthHint = 100;
 		btnSave.setLayoutData(gd);
+		btnSave.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (text.getText().equals("")) {
+					showError("No data file selected.");
+					return;
+				}
+				
+				File f = new File(text.getText());
+				if (!f.exists()) {
+					showError("Data file does not exist.");
+					return;
+				}
+				if (f.isDirectory()) {
+					showError("Data file is not a text file.");
+					return;
+				}
+
+				docObj.save(f.getAbsolutePath());
+				showNotice("Successfully saved to file " + f.getAbsolutePath() + ".");
+			}
+		});
 
 		shell.setSize(700, 300);
 		shell.open();
@@ -66,36 +128,19 @@ public class Main {
 		}
 		display.dispose();
 		System.exit(0);
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		if (args.length != 3) {
-			System.out.println("Usage: thesis_zr <src-document> <dst-document>");
-			System.exit(1);
-		}
-
-		String srcDoc = args[1];
-		String dstDoc = args[2];
-		ZrDocument docObj = new ZrDocument();
-
-		System.out.println("Loading source document " + srcDoc + ".");
-		docObj.load(srcDoc);
-
-		System.out.println("Processing...");
-
-		
-		System.out.println("Saving to " + dstDoc + ".");
-		docObj.save(dstDoc);
-
-		System.out.println("Complete.");
-		System.exit(0);
 	}
-
+	
+	public static void showError(String message) {
+		MessageBox box = new MessageBox(shell, SWT.OK | SWT.ICON_ERROR);
+		box.setText("Error");
+		box.setMessage(message);
+		box.open();
+	}
+	
+	public static void showNotice(String message) {
+		MessageBox box = new MessageBox(shell, SWT.OK | SWT.ICON_INFORMATION);
+		box.setText("Notice");
+		box.setMessage(message);
+		box.open();
+	}
 }
