@@ -81,8 +81,12 @@ public class Main {
 					return;
 				}
 
-				docObj.load(f.getAbsolutePath());
-				showNotice("Successfully loaded from file " + f.getAbsolutePath() + ".");
+				try {
+					docObj.load(f.getAbsolutePath());
+					showNotice("Successfully loaded from file " + f.getAbsolutePath() + ".");
+				} catch (Exception ex) {
+					showError("Failed to load from file " + f.getAbsolutePath() + ", " + ex.getMessage());
+				}
 			}
 		});
 
@@ -105,17 +109,17 @@ public class Main {
 				}
 				
 				File f = new File(text.getText());
-				if (!f.exists()) {
-					showError("Data file does not exist.");
-					return;
-				}
 				if (f.isDirectory()) {
 					showError("Data file is not a text file.");
 					return;
 				}
 
-				docObj.save(f.getAbsolutePath());
-				showNotice("Successfully saved to file " + f.getAbsolutePath() + ".");
+				try {
+					docObj.save(f.getAbsolutePath());
+					showNotice("Successfully saved to file " + f.getAbsolutePath() + ".");
+				} catch (Exception ex) {
+					showError("Failed to save to file " + f.getAbsolutePath() + ", " + ex.getMessage());
+				}
 			}
 		});
 
