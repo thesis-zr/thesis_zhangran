@@ -8,7 +8,7 @@ lable decomposed-into（意图，意图）
       achieve-by（意图，选项）
       decided-by（选项，决策）
       refer-to（选项，依据）（决策，标准）（决策，权衡）
-      realized-to（决策，操作）
+      realized-by（决策，操作）
       initiate（决策／操作，意图）
       return-to（意图／选项／决策／操作，意图／选项／决策）
       evolve-to（意图，意图）（选项，选项）（决策，决策）           start-after(操作，操作)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        	
