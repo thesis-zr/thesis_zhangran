@@ -110,8 +110,16 @@ public class Main {
 					showError("Failed to process data file, " + ex.getMessage());
 					return;
 				}
+				
+				try {
+					ZrProcessor procObj = new ZrProcessor(docObj);
+					procObj.process();
+				} catch (Exception ex) {
+					showError("Failed to process data file, " + ex.getMessage());
+					return;
+				}
 
-				showNotice("Process complete.s");
+				showNotice("Process completes.");
 			}
 		});
 		
