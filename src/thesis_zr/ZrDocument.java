@@ -5,9 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -80,13 +78,17 @@ public class ZrDocument {
 
 	public void advParse() throws Exception {
 		NodeList nodeList;
-		
+
+		// process all the <node>
 		nodeList = doc.getElementsByTagName("node");
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			Element n = (Element)nodeList.item(i);
 
 			ZrNode zn = new ZrNode();
 			switch(Integer.parseInt(n.getAttribute("type"))) {
+				case ZrNode.TYPE_INBOX: 
+					zn.nodeType = ZrNode.TYPE_INBOX;
+					break;
 				case ZrNode.TYPE_INTENT:
 					zn.nodeType = ZrNode.TYPE_INTENT;
 					break;
@@ -106,10 +108,11 @@ public class ZrDocument {
 					throw new Exception("Node " + n.getAttribute("id") + " has invalid type");
 			}
 			zn.domNode = n;
-			
+
 			nodeMap.put(n.getAttribute("id"), zn);
 		}
 		
+		// process all the <link>
 		nodeList = doc.getElementsByTagName("link");
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			Element n = (Element)nodeList.item(i);
@@ -128,8 +131,8 @@ public class ZrDocument {
 				case "refer-to":
 					zl.linkType = ZrLink.TYPE_REFER_TO;
 					break;
-				case "realized-to":
-					zl.linkType = ZrLink.TYPE_REALIZED_TO;
+				case "realized-by":
+					zl.linkType = ZrLink.TYPE_REALIZED_BY;
 					break;
 				case "initiate":
 					zl.linkType = ZrLink.TYPE_INITIATE;
@@ -150,12 +153,19 @@ public class ZrDocument {
 			zn.linkList.add(zl);
 		}
 		
-		String[] keySet = (String[]) nodeMap.keySet().toArray();
+		// get root node
+		Object[] keySet = nodeMap.keySet().toArray();
 		for (int i = 0; i < keySet.length; i++) {
-			ZrNode zn = nodeMap.get(keySet[i]);
+			ZrNode zn = nodeMap.get((String)keySet[i]);
+
+			// only INTENT can be root node
+			if (zn.nodeType != ZrNode.TYPE_INTENT) {
+				continue;
+			}
+			
 			boolean found = false;
 			for (int j = 0; j < keySet.length; j++) {
-				ZrNode zn2 = nodeMap.get(keySet[i]);
+				ZrNode zn2 = nodeMap.get((String)keySet[i]);
 				for (int k = 0; k < zn2.linkList.size(); k++) {
 					if (zn2.linkList.get(k).to == zn) {
 						found = true;
