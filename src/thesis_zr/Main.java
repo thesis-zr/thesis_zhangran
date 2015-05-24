@@ -83,10 +83,12 @@ public class Main {
 
 				try {
 					docObj.load(f.getAbsolutePath());
-					showNotice("Successfully loaded from file " + f.getAbsolutePath() + ".");
 				} catch (Exception ex) {
 					showError("Failed to load from file " + f.getAbsolutePath() + ", " + ex.getMessage());
+					return;
 				}
+
+				showNotice("Successfully loaded from file " + f.getAbsolutePath() + ".");
 			}
 		});
 
@@ -95,7 +97,24 @@ public class Main {
 		gd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
 		gd.widthHint = 100;
 		btnProcess.setLayoutData(gd);
+		btnProcess.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (!docObj.isLoaded()) {
+					showError("No data file loaded.");
+					return;
+				}
 
+				try {
+					docObj.advParse();
+				} catch (Exception ex) {
+					showError("Failed to process data file, " + ex.getMessage());
+					return;
+				}
+
+				showNotice("Process complete.s");
+			}
+		});
+		
 		Button btnSave = new Button(shell, SWT.PUSH);
 		btnSave.setText("Save");
 		gd = new GridData(SWT.CENTER, SWT.BEGINNING, true, false);
@@ -116,10 +135,12 @@ public class Main {
 
 				try {
 					docObj.save(f.getAbsolutePath());
-					showNotice("Successfully saved to file " + f.getAbsolutePath() + ".");
 				} catch (Exception ex) {
 					showError("Failed to save to file " + f.getAbsolutePath() + ", " + ex.getMessage());
+					return;
 				}
+
+				showNotice("Successfully saved to file " + f.getAbsolutePath() + ".");
 			}
 		});
 
